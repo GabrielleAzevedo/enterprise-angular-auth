@@ -1,0 +1,44 @@
+@font-face {
+    font-family: 'Figtree';
+    src: url('assets/fonts/Figtree-VariableFont_wght.ttf') format(truetype);
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Figtree';
+    src: url('assets/fonts/Figtree-Italic-VariableFont_wght.ttf') format(truetype);
+    font-weight: 100 900;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Zain';
+    src: url('assets/fonts/Zain-Regular.ttf')
+    format(truetype);
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Zain';
+    src: url('assets/fonts/Zain-Bold.ttf')
+    format(truetype);
+    font-weight: 700;
+    font-style: normal;
+}
+
+@layer base {
+    html {
+        color: #171717;
+    }
+
+    /* Remove outline visual de elementos focados programaticamente (acessibilidade sem poluição visual) */
+    [tabindex="-1"]:focus {
+        outline: none !important;
+    }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
