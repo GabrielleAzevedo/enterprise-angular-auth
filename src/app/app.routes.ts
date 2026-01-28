@@ -44,6 +44,6 @@ export const routes: Routes = [
       import('./features/auth/pages/update-password/update-password').then(
         (m) => m.UpdatePasswordComponent,
       ),
-    data: { isPublic: true },
+    canActivate: [authGuard],
   },
 ];
