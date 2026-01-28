@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { AuthGateway } from '../../gateways/auth.gateway';
-import { environment } from '../../../../environments/environment.example';
+import { environment } from '../../../../environments/environment';
 import { User, AuthSession } from '../../models/user.model';
 import { UserMapper } from '../../mappers/user/user.mapper';
 import { AuthError, AuthErrorCode } from '../../models/auth-errors';
