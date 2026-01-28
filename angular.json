@@ -71,6 +71,19 @@
         },
         "test": {
           "builder": "@angular/build:unit-test"
+        },
+        "e2e": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "nome-do-seu-projeto:serve",
+            "watch": true,
+            "headless": false
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "nome-do-seu-projeto:serve:production"
+            }
+          }
         }
       }
     }
