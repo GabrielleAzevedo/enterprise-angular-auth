@@ -5,7 +5,7 @@ import { init as sentryInit } from '@sentry/angular';
 
 import { routes } from './app.routes';
 import { AuthGateway } from './core/gateways/auth.gateway';
-import { GlobalErrorHandler } from './core/error/global-error-handler';
+import { GlobalErrorHandler } from './core/services/error/global-error-handler';
 import { SupabaseAuthGateway } from './core/adapters/supabase/supabase-auth.gateway';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { environment } from '../environments/environment.example'

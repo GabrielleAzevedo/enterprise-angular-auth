@@ -1,8 +1,8 @@
 import { ErrorHandler, Injectable, Injector, NgZone, inject } from '@angular/core';
-import { ToastService } from '../services/toast/toast.service';
+import { ToastService } from '../toast/toast.service';
 import * as Sentry from '@sentry/angular';
-import { environment } from '../../../environments/environment.example';
-import { AuthError,  } from '../models/auth-errors';
+import { environment } from '../../../../environments/environment.example';
+import { AuthError,  } from '../../models/auth-errors';
 
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
