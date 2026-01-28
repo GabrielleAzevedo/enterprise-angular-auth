@@ -1,0 +1,35 @@
+<app-auth-layout>
+  <p class="text-center font-medium">Verifique seu email</p>
+  <p class="text-center text-sm text-gray-500 font-medium tracking-wide mb-4">
+    Enviamos um link de confirmação para você
+  </p>
+
+  <div class="flex flex-col items-center space-y-6">
+    <!-- Ícone de Email -->
+    <div class="bg-primary/10 p-4 rounded-full">
+      <lucide-icon [img]="MailIcon" class="w-8 h-8 text-primary" strokeWidth="2"></lucide-icon>
+    </div>
+
+    <!-- Mensagem de Confirmação -->
+    <div class="text-center">
+      <p class="text-gray-600">
+        Para acessar sua conta, clique no link que enviamos para:
+        @if (email) {
+          <span class="text-primary font-medium text-lg">{{ email }}</span>
+        } @else {
+          <span class="text-primary font-medium text-lg">seu endereço de email</span>
+        }
+      </p>
+    </div>
+
+    <div class="w-full space-y-4 pt-2">
+      <p class="text-sm text-gray-500 text-center">
+        Não recebeu o email? Verifique sua caixa de spam ou lixo eletrônico.
+      </p>
+
+      <app-button variant="outline" [fullWidth]="true" routerLink="/entrar">
+        Voltar para o Login
+      </app-button>
+    </div>
+  </div>
+</app-auth-layout>

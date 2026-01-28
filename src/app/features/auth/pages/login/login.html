@@ -1,0 +1,79 @@
+<app-auth-layout>
+  <p class="text-center font-medium">Entrar</p>
+  <p class="text-center text-sm text-gray-500 font-medium tracking-wide mb-4">
+    Bem-vindo de volta!
+  </p>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="mb-3 block">
+      <app-input
+        label="Email"
+        formControlName="email"
+        icon="email"
+        placeholder="seu@email.com"
+        [control]="form.get('email')"
+      >
+        <lucide-angular [img]="Mail" size="18" icon></lucide-angular>
+      </app-input>
+    </div>
+
+    <div class="mb-3 block">
+      <app-input
+        label="Senha"
+        formControlName="password"
+        type="password"
+        placeholder="••••••••"
+        [control]="form.get('password')"
+      >
+        <lucide-angular [img]="Lock" size="18" icon></lucide-angular>
+      </app-input>
+    </div>
+
+    <div class="flex items-center justify-end mb-2">
+      <a
+        routerLink="/recuperar-senha"
+        class="text-sm font-medium text-primary hover:text-primary-dark transition-colors"
+      >
+        Esqueceu a senha?
+      </a>
+    </div>
+
+    <div class="mt-4">
+      <app-button type="submit" [fullWidth]="true" [loading]="isLoading()" [disabled]="isLoading()">
+        Entrar
+      </app-button>
+    </div>
+
+    <div class="flex items-center gap-4 my-4">
+      <div class="h-px bg-gray-200 flex-1"></div>
+      <!-- Linha Esquerda -->
+      <span class="text-xs text-gray-400 shrink-0">ou</span>
+      <!-- Texto -->
+      <div class="h-px bg-gray-200 flex-1"></div>
+      <!-- Linha Direita -->
+    </div>
+
+    <app-button
+      variant="outline"
+      type="button"
+      [fullWidth]="true"
+      [disabled]="isLoading()"
+      (onClick)="loginWithGoogle()"
+    >
+      <app-brand-icon name="google" icon></app-brand-icon>
+      Entrar com Google
+    </app-button>
+    <div class="mt-3 text-center space-y-2">
+      <p class="text-sm text-gray-500">
+        Não tem uma conta?
+        <a
+          routerLink="/cadastro"
+          class="font-bold text-accent hover:text-accent-hover cursor-pointer"
+        >
+          Criar conta
+        </a>
+      </p>
+
+      <p class="text-xs text-gray-400">Ao continuar, você concorda com os termos de uso</p>
+    </div>
+  </form>
+</app-auth-layout>

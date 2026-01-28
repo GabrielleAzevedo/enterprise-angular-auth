@@ -1,0 +1,21 @@
+<main class="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
+  
+  <!-- Logo -->
+  <header class="flex flex-col items-center gap-3 mb-4 text-center">
+    <div class="text-3xl tracking-tight">
+      <app-logo></app-logo>
+    </div>
+
+    <p class="text-sm text-gray-500 font-medium tracking-wide">
+      Finanças para pessoas inteligentes
+    </p>
+  </header>
+
+  <!-- Container do Card -->
+  <div class="w-full max-w-md">
+    <app-card>
+      <ng-content></ng-content>
+    </app-card>
+  </div>
+  
+</main>
