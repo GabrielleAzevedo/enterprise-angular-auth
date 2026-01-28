@@ -1,0 +1,50 @@
+<main class="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
+  <!-- Logo -->
+  <header class="flex flex-col items-center gap-3 mb-4 text-center">
+    <div class="text-3xl tracking-tight">
+      <app-logo></app-logo>
+    </div>
+    <p class="text-sm text-gray-500 font-medium tracking-wide">
+      Finanças para pessoas inteligentes
+    </p>
+  </header>
+
+  <!-- Container do Card -->
+  <div class="w-full max-w-md">
+    <app-card>
+      <div class="flex flex-col items-center pt-2 pb-2">
+        <!-- Avatar Placeholder -->
+        <div
+          class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4 ring-4 ring-primary/5"
+        >
+          <lucide-angular [img]="User" class="text-primary" size="40"></lucide-angular>
+        </div>
+
+        <!-- Boas vindas -->
+        <h1 class="text-xl font-bold text-gray-900 mb-1">Bem-vindo de volta!</h1>
+
+        <!-- Email -->
+        <p class="text-gray-500 font-medium mb-8">
+          {{ currentUser()?.email }}
+        </p>
+
+        <!-- Ações -->
+        <div class="w-full space-y-3">
+          <app-button
+            variant="primary"
+            [fullWidth]="true"
+            (onClick)="refreshData()"
+            [loading]="isRefreshing()"
+          >
+            <lucide-angular [img]="RefreshCw" size="18" icon class="mr-2"></lucide-angular>
+            Atualizar Dados
+          </app-button>
+
+          <app-button variant="outline" [fullWidth]="true" (onClick)="logout()">
+            Sair da conta
+          </app-button>
+        </div>
+      </div>
+    </app-card>
+  </div>
+</main>
