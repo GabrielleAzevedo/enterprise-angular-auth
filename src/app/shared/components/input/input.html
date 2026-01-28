@@ -1,0 +1,53 @@
+<div class="flex flex-col gap-1.5 w-full">
+  
+    @if (label){
+        <label [for]="inputId" class="text-base font-medium text-gray-700 ml-1">
+            {{ label }}
+        </label>
+    }
+ 
+
+  <div class="relative">
+    
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+      <ng-content select="[icon]"></ng-content>
+    </div>
+
+    <input
+      [id]="inputId"
+      [type]="inputType"
+      [placeholder]="placeholder"
+      [value]="value"
+      [disabled]="isDisabled"
+      (input)="onInput($event)"
+      (blur)="onTouched()"
+      [attr.aria-invalid]="errorState"
+      [attr.aria-describedby]="errorState ? errorId : null"
+      class="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg text-base text-gray-900 placeholder-gray-400
+             focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent 
+             disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-200"
+      [class.border-red-500]="errorState"
+      [class.focus:ring-red-500]="errorState"
+    />
+
+    @if (type === 'password') {
+      <button 
+        type="button"
+        (click)="toggleShowPassword()"
+        [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Exibir senha'"
+        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+        tabindex="-1"
+      >
+        <lucide-angular [img]="showPassword() ? EyeOff : Eye" size="20"></lucide-angular>
+      </button>
+    }
+  </div>
+
+  @if (errorMessage) {
+    <div [id]="errorId" role="alert" class="flex items-center gap-1 mt-1 ml-1 text-red-500 text-xs animate-fadeIn">
+        <lucide-angular [img]="AlertCircle" size="12"></lucide-angular>
+        <span>{{ errorMessage }}</span>
+    </div>
+  }
+
+</div>

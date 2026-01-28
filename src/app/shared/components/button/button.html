@@ -1,0 +1,18 @@
+<button
+  [type]="type()"
+  [class]="classes()"
+  [disabled]="disabled() || loading()"
+  (click)="onClick.emit()"
+>
+  @if (loading()) {
+    <app-spinner class="-ml-1 mr-2" size="h-4 w-4" />
+  }
+
+  <!-- Ícone Opcional (Esquerda) -->
+  @if (!loading()) {
+    <ng-content select="[icon]"></ng-content>
+  }
+
+  <!-- Texto do Botão -->
+  <ng-content></ng-content>
+</button>
