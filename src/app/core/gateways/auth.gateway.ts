@@ -1,4 +1,3 @@
-import { Observable } from 'rxjs';
 import { User, AuthSession } from "../models/user.model";
 
 export abstract class AuthGateway {
