@@ -36,21 +36,21 @@ describe('SupabaseAuthGateway', () => {
     };
 
     it('deve lançar EmailNotConfirmed quando a mensagem contiver "Email not confirmed"', async () => {
-      const error = { message: 'Email not confirmed' };
+      const error = { message: 'Email not confirmed', status: 400 };
       await expect(handleError(error)).rejects.toMatchObject({
         code: AuthErrorCode.EmailNotConfirmed,
       });
     });
 
     it('deve lançar InvalidCredentials quando a mensagem contiver "Invalid login credentials"', async () => {
-      const error = { message: 'Invalid login credentials' };
+      const error = { message: 'Invalid login credentials', status: 400 };
       await expect(handleError(error)).rejects.toMatchObject({
         code: AuthErrorCode.InvalidCredentials,
       });
     });
 
     it('deve lançar UserAlreadyRegistered quando a mensagem contiver "already registered"', async () => {
-      const error = { message: 'User already registered' };
+      const error = { message: 'User already registered', status: 422 };
       await expect(handleError(error)).rejects.toMatchObject({
         code: AuthErrorCode.UserAlreadyRegistered,
       });
