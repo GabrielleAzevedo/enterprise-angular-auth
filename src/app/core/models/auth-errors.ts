@@ -15,4 +15,20 @@ export class AuthError extends Error {
     super(message);
     this.name = 'AuthError';
   }
+
+  toUserFriendlyMessage(): string {
+    switch (this.code) {
+      case AuthErrorCode.EmailNotConfirmed:
+        return 'Email não confirmado. Verifique sua caixa de entrada.';
+      case AuthErrorCode.InvalidCredentials:
+        return 'Email ou senha incorretos.';
+      case AuthErrorCode.UserAlreadyRegistered:
+        return 'Este email já está em uso.';
+      case AuthErrorCode.NetworkError:
+        return 'Erro de conexão. Verifique sua internet.';
+      case AuthErrorCode.Unknown:
+      default:
+        return 'Ocorreu um erro inesperado. Tente novamente mais tarde.';
+    }
+  }
 }
