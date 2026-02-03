@@ -8,7 +8,14 @@ import { AuthGateway } from './core/gateways/auth.gateway';
 import { GlobalErrorHandler } from './core/services/error/global-error-handler';
 import { SupabaseAuthGateway } from './core/adapters/supabase/supabase-auth.gateway';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { environment } from '../environments/environment.example'
+import { environment } from '../environments/environment';
+
+export function initializeAuth(authService: AuthService) {
+  return () => authService.init();
+}
+
+import { AuthService } from './core/services/auth/auth.service';
+import { APP_INITIALIZER } from '@angular/core';
 
 // Inicializa o Sentry o mais cedo possível
 sentryInit({
@@ -26,5 +33,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     { provide: AuthGateway, useClass: SupabaseAuthGateway },
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeAuth,
+      deps: [AuthService],
+      multi: true,
+    },
   ],
 };
