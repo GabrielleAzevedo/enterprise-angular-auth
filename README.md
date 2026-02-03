@@ -1,95 +1,103 @@
-# Enterprise Angular Auth
+# Enterprise Angular Auth Architecture
 
-> **Aviso para Recrutadores/Tech Leads:** Este repositório não é apenas um formulário de login. É uma demonstração de arquitetura resiliente, desacoplamento e práticas modernas de Engenharia de Frontend (Angular 18+).
+> **Aviso para Tech Leads & Recrutadores:** Este não é um "projeto de portfólio" comum. É uma implementação de referência demonstrando padrões de **Engenharia de Software Sênior** aplicados ao ecossistema Angular moderno (v21+).
 
-![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-21+-DD0031?style=for-the-badge&logo=angular&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-Coverage-729B1B?style=for-the-badge&logo=vitest&logoColor=white)
+![Clean Arch](https://img.shields.io/badge/Architecture-Clean-0052CC?style=for-the-badge&logo=architecture&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Auth-181818?style=for-the-badge&logo=supabase&logoColor=white)
 
-## 🎯 O Problema de Negócio
+## 🎯 Diferenciais de Engenharia
 
-A maioria das implementações de autenticação acopla a UI diretamente ao SDK do provedor (Firebase, Auth0, Supabase). Isso cria três problemas críticos em projetos de longa duração:
+Este projeto entrega código que **escala, resiste a falhas e é testável**.
 
-1.  **Vendor Lock-in:** Mudar de provedor exige refatorar a aplicação inteira.
-2.  **Testabilidade:** É difícil testar componentes que dependem diretamente de SDKs externos.
-3.  **Inconsistência de Dados:** O formato do usuário (User Payload) varia entre provedores, vazando detalhes de implementação para a UI.
+### 1. Concorrência e Resiliência (The "Hard Stuff")
 
-Este projeto resolve isso implementando uma **Clean Architecture** no Frontend.
+Implementação de um **HTTP Interceptor com Mutex e Queueing**.
 
-## 🏗 Arquitetura e Decisões Técnicas
+- **Cenário:** O token expira e o usuário faz 5 requisições simultâneas.
+- **Abordagem:** O interceptor detecta a primeira falha, bloqueia as outras requisições, faz **um único** refresh, e então libera a fila processando as requisições pendentes com o novo token.
+- **Prova:** Teste unitário `deve lidar com concorrência (mutex)` em `auth.interceptor.spec.ts`.
 
-### 1. Gateway Pattern (Port & Adapter)
+### 2. Clean Architecture & Port/Adapter
 
-A decisão mais crítica deste projeto foi **inverter a dependência** da autenticação.
+Inversão de dependência total. O Core da aplicação não sabe que o Supabase existe.
 
-- **Abstração (The Port):** `AuthGateway` (classe abstrata) define o _contrato_ que a aplicação precisa (login, logout, getCurrentUser).
-- **Implementação (The Adapter):** `SupabaseAuthGateway` implementa esse contrato usando o SDK do Supabase.
-- **Consumo:** O `AuthService` e os componentes conhecem apenas o `AuthGateway`.
+- **Port (Contrato):** `AuthGateway` (abstrato).
+- **Adapter (Implementação):** `SupabaseAuthGateway`.
+- **Benefício:** Migrar para Auth0 ou AWS Cognito requer apenas criar um novo Adapter, sem tocar em uma única linha de regra de negócio ou componente de UI.
 
-**Resultado:** Se amanhã precisarmos migrar para AWS Cognito ou Auth0, basta criar uma nova classe `CognitoAuthGateway` e alterar uma linha no `app.config.ts`. Nenhuma linha de regra de negócio ou componente precisa ser tocada.
+### 3. State Management "No-Boilerplate"
 
-### 2. State Management com Signals
+Sem NgRx, sem complexidade desnecessária, mas com controle total.
 
-Abandonei a complexidade do NgRx para este escopo, optando pela simplicidade e performance dos **Angular Signals**.
+- **Padrão:** Service-based State com Signals.
+- **Segurança de Estado:** `AuthState` expõe sinais **Read-Only** (`currentUser`, `isAuthenticated`) publicamente, mantendo os métodos de escrita (`set`, `update`) privados. Isso impede corrupção de estado acidental por componentes.
+- **Facade Pattern:** O `AuthService` atua como fachada, orquestrando chamadas ao Gateway, atualizações no State e efeitos colaterais (Router), simplificando o consumo pelos componentes.
 
-- `currentUser`: Um Signal que garante reatividade granular na UI.
-- `effect()`: Utilizado no `AuthService` para gerenciar redirecionamentos de segurança (Route Guards reativos) baseados no estado de autenticação, eliminando condições de corrida comuns em SPAs.
+### 4. Estratégia de Testes (Quality Gates)
 
-### 3. Domain Mapper Pattern
+- **Unitários (Vitest):** Rodando em JSDOM para velocidade.
+- **Componentes:** Testes de integração de UI (ex: `RegisterComponent` validando feedback visual de Toasts).
+- **Isolamento:** Uso de `MockProvider` e injeção de dependência para testar serviços isolados do backend real.
 
-Os dados que vêm do Supabase não são consumidos "crus". Existe uma camada de **Mappers** (`UserMapper`) que sanitiza e transforma o DTO do provedor em uma entidade de domínio `User`. Isso garante que a aplicação lide apenas com dados que ela controla, não com a estrutura do banco de dados.
+## 🏗 Estrutura do Projeto
 
-## 🚀 Stack Tecnológica
+```
+src/app/
+├── core/                  # Singleton Services, Guards, Interceptors
+│   ├── adapters/          # Implementações concretas (Supabase)
+│   ├── gateways/          # Contratos abstratos (Ports)
+│   ├── services/          # Lógica de Negócio e Estado (AuthService, AuthState)
+│   └── interceptors/      # Manipulação HTTP Global
+├── features/              # Módulos de Funcionalidade (Lazy Loaded)
+│   ├── auth/              # Login, Register, Password Recovery
+│   └── dashboard/         # Área protegida
+└── shared/                # UI Components (Dumb Components)
+```
 
-- **Core:** Angular (Latest), TypeScript.
-- **Estilização:** TailwindCSS (para velocidade de desenvolvimento e consistência de Design System).
-- **Backend as a Service:** Supabase (Auth + DB).
-- **Qualidade:**
-  - **Vitest:** Para testes unitários (mais rápido que Karma/Jasmine).
-  - **Cypress:** Para testes E2E (cobrindo fluxos críticos de login/cadastro).
-  - **Sentry:** Monitoramento de erros em tempo real.
-  - **Zod/Validators:** Validação robusta de formulários.
+## 🚀 Como Rodar
 
-## 🛠 Como Rodar
+### Pré-requisitos
 
-1.  **Clone o repositório:**
+- Node.js 20+
+- NPM 10+
 
-    ```bash
-    git clone https://github.com/seu-usuario/enterprise-angular-auth.git
-    ```
+### Instalação
 
-2.  **Instale as dependências:**
+```bash
+git clone https://github.com/seu-usuario/enterprise-angular-auth.git
+npm install
+```
 
-    ```bash
-    npm install
-    ```
+### Configuração
 
-3.  **Configure o Ambiente:**
-    Crie um arquivo `src/environments/environment.ts` com suas chaves do Supabase e Sentry:
+Crie o arquivo `src/environments/environment.ts`:
 
-    ```typescript
-    export const environment = {
-      production: false,
-      supabaseUrl: 'SUA_URL',
-      supabaseKey: 'SUA_KEY',
-      sentryDsn: 'SEU_DSN_DO_SENTRY',
-    };
-    ```
+```typescript
+export const environment = {
+  production: false,
+  supabaseUrl: 'SUA_URL_DO_SUPABASE',
+  supabaseKey: 'SUA_ANON_KEY',
+  sentryDsn: 'OPCIONAL_DSN_SENTRY',
+};
+```
 
-4.  **Execute:**
-    ```bash
-    npm start
-    ```
+### Scripts
 
-## ⚖️ Trade-offs e Melhorias Futuras
+- **Dev Server:** `npm start`
+- **Testes Unitários:** `npm test` (Powered by Vitest)
+- **Build de Produção:** `npm run build`
 
-Como todo projeto de engenharia, escolhas foram feitas:
+## ⚖️ Decisões Técnicas & Trade-offs
 
-- **Auth via LocalStorage:** Atualmente a persistência é via LocalStorage (padrão do Supabase). Para aplicações bancárias/alta segurança, a migração para **HttpOnly Cookies** seria mandatória para mitigar XSS. Graças ao padrão Gateway, essa mudança seria isolada no Adapter.
-- **Signals vs NgRx:** Para o escopo atual, Signals são suficientes. Se a complexidade de estado global aumentasse (ex: cache de permissões complexas, multi-tenant state), NgRx ou Elf seriam considerados.
-- **Testes de Integração:** O projeto foca em Unitários e E2E. Testes de integração (Component Testing) seriam o próximo passo para garantir a estabilidade da UI isolada.
+| Decisão                   | Motivação                                          | Trade-off                                                                                                           |
+| ------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Signals vs NgRx**       | Reduzir boilerplate mantendo reatividade granular. | Menos ferramentas de devtools (Time Travel) que o NgRx oferece, mas suficiente para este escopo.                    |
+| **LocalStorage**          | Padrão do Supabase JS Client.                      | Vulnerável a XSS se houver injeção de script. Em ambiente bancário, migraria para **HttpOnly Cookies** via Adapter. |
+| **TailwindCSS**           | Velocidade de UI e padronização.                   | HTML verboso, mas mitigado com extração de componentes (`@apply` usado com moderação).                              |
+| **Standalone Components** | Modernidade e Tree-shaking.                        | Exige familiaridade com a nova API de injeção do Angular 15+.                                                       |
 
 ---
 
-_Desenvolvido como referência de arquitetura escalável em Angular._
+_Este projeto é mantido como referência de arquitetura para aplicações Angular de alta escala._
