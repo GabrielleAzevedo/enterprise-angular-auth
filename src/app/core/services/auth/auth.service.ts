@@ -1,75 +1,63 @@
-import { Injectable, inject, signal, effect } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { AuthGateway } from '../../gateways/auth.gateway';
-import { User } from '../../models/user.model';
 import { Router } from '@angular/router';
+import { AuthState } from './auth.state';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private authGateway = inject(AuthGateway);
+  private authState = inject(AuthState);
   private router = inject(Router);
 
-  currentUser = signal<User | null>(null);
-  isAuthLoading = signal(true);
+  // Expose state for compatibility (Facade Pattern)
+  readonly currentUser = this.authState.currentUser;
+  readonly currentSession = this.authState.session;
+  readonly isAuthLoading = this.authState.isLoading;
+  readonly accessToken = this.authState.accessToken;
 
   constructor() {
-    this.authGateway.getCurrentUser().then((user) => {
-      this.currentUser.set(user);
-      this.isAuthLoading.set(false);
+    // Sincroniza eventos externos (ex: abas diferentes, refresh automático do SDK) com a Store
+    this.authGateway.onAuthStateChange((user, session) => {
+      this.authState.setState(session);
     });
+  }
 
-    this.authGateway.onAuthStateChange((user) => {
-      this.currentUser.set(user);
-    });
+  // Orchestration Methods
 
-    // Reage tanto à perda de sessão quanto ao ganho de sessão em rotas públicas
-    effect(() => {
-      const user = this.currentUser();
-      const isLoading = this.isAuthLoading();
+  async init() {
+    // 1. Hidratação Otimista (Instantânea)
+    this.authState.loadFromStorage();
 
-      if (!isLoading) {
-        let route = this.router.routerState.snapshot.root;
-        while (route.firstChild) {
-          route = route.firstChild;
-        }
-
-        const isPublicRoute = route.data['isPublic'] === true;
-        const currentUrl = this.router.url.split('?')[0];
-
-        if (user && isPublicRoute) {
-          // Se usuário está logado e tenta acessar rota pública -> Dashboard
-          this.router.navigate(['/dashboard']);
-        } else if (!user && !isPublicRoute && currentUrl !== '/') {
-          // Se usuário NÃO está logado e tenta acessar rota privada -> Login
-          this.router.navigate(['/entrar']);
+    try {
+      // 2. Validação/Atualização em Background
+      const session = await this.authGateway.getSession();
+      // Apenas atualiza se houver diferença ou para confirmar validade
+      if (session) {
+        this.authState.setState(session);
+      } else {
+        // Se o storage tinha algo mas o gateway diz que não tem sessão, limpa
+        if (this.authState.isAuthenticated()) {
+          this.authState.clearState();
         }
       }
-    });
+    } catch (error) {
+      this.authState.clearState();
+    } finally {
+      this.authState.setLoading(false);
+    }
   }
 
   async signUp(email: string, password: string) {
     return this.authGateway.signUp(email, password);
   }
 
-  async getSession() {
-    return this.authGateway.getSession();
-  }
-
   async signInWithEmail(email: string, password: string) {
-    return this.authGateway.signInWithEmail(email, password);
-  }
-
-  async refreshSession() {
-    this.isAuthLoading.set(true);
-    try {
-      const user = await this.authGateway.getCurrentUser();
-      this.currentUser.set(user);
-    } catch (error) {
-      this.currentUser.set(null);
-    } finally {
-      this.isAuthLoading.set(false);
-    }
+    const response = await this.authGateway.signInWithEmail(email, password);
+    // O estado será atualizado automaticamente via onAuthStateChange,
+    // mas em alguns casos pode ser útil forçar atualização aqui se o SDK não emitir imediatamente
+    return response;
   }
 
   async signInWithGoogle() {
@@ -78,12 +66,26 @@ export class AuthService {
 
   async signOut() {
     await this.authGateway.signOut();
-    this.currentUser.set(null);
+    this.authState.clearState();
     this.router.navigate(['/entrar']);
   }
 
+  async refreshSession() {
+    // Não alteramos o loading global para evitar flickers na UI durante refresh silencioso
+    try {
+      const session = await this.authGateway.getSession();
+      if (!session) throw new Error('Session expired');
+
+      this.authState.setState(session);
+      return session;
+    } catch (error) {
+      this.authState.clearState();
+      throw error;
+    }
+  }
+
   async resetPassword(email: string) {
-    return this.authGateway.resetPassword(email);
+    return this.authGateway.resetPasswordForEmail(email);
   }
 
   async updatePassword(password: string) {
@@ -91,7 +93,7 @@ export class AuthService {
   }
 
   handleUnauthorized() {
-    this.currentUser.set(null);
+    this.authState.clearState();
     this.router.navigate(['/entrar']);
   }
 }
