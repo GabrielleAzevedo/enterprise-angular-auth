@@ -7,6 +7,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button';
 import { RouterLink } from '@angular/router';
 import { ToastService, AuthService } from '../../../../core/services/index';
 import { emailValidator } from '../../../../shared/validators/email.validators';
+import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 
 @Component({
   selector: 'app-forgot-password',
@@ -17,6 +18,7 @@ import { emailValidator } from '../../../../shared/validators/email.validators';
     InputComponent,
     ReactiveFormsModule,
     RouterLink,
+    FocusInvalidInputDirective
   ],
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.scss',

@@ -36,21 +36,17 @@ describe('VerifyEmailComponent', () => {
   });
 
   it('deve exibir email do estado da navegação se disponível', () => {
-    // Simula retorno do router com estado
-    routerMock.getCurrentNavigation.mockReturnValue({
-      extras: {
-        state: {
-          email: 'test@example.com',
-        },
-      },
-    });
+    const state = { email: 'test@example.com' };
+    vi.spyOn(history, 'state', 'get').mockReturnValue(state);
+    
+    // É necessário recriar o componente para que ele leia o novo history.state
+    const fixture2 = TestBed.createComponent(VerifyEmailComponent);
+    fixture2.detectChanges();
 
-    // Recria componente para pegar o novo estado
-    fixture = TestBed.createComponent(VerifyEmailComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-
-    const emailElement = fixture.debugElement.query(By.css('span.text-primary'));
+    const emailElement = fixture2.debugElement.query(By.css('span.text-primary'));
+    
+    // Verifica se o elemento existe antes de acessar nativeElement
+    expect(emailElement).toBeTruthy();
     expect(emailElement.nativeElement.textContent).toContain('test@example.com');
   });
 

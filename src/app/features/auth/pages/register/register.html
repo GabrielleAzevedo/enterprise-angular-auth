@@ -1,6 +1,6 @@
 <app-auth-layout>
-  <p class="text-center mb-2 font-medium text-gray-500">Criar conta</p>
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <p class="text-center mb-4 font-medium text-gray-500">Criar conta</p>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" appFocusInvalidInput>
     <div class="mb-3 block">
       <app-input
         label="Email"

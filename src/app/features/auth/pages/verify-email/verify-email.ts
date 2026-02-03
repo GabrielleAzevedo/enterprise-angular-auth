@@ -13,8 +13,14 @@ import { AuthLayout } from '../../components/auth-layout/auth-layout';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VerifyEmailComponent {
-  // Pega o email diretamente do histórico de navegação (padrão moderno)
-  email = history.state['email'] || '';
+  email = '';
+
+  constructor() {
+    const navigation = history.state;
+    if (navigation && navigation['email']) {
+      this.email = navigation['email'];
+    }
+  }
 
   readonly MailIcon = Mail;
 }

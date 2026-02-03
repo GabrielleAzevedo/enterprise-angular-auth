@@ -3,7 +3,7 @@
   <p class="text-center text-sm text-gray-500 font-medium tracking-wide mb-4">
     Bem-vindo de volta!
   </p>
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" appFocusInvalidInput>
     <div class="mb-3 block">
       <app-input
         label="Email"

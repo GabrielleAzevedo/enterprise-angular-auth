@@ -7,6 +7,7 @@ import { AuthLayout } from '../../components/auth-layout/auth-layout';
 import { InputComponent, ButtonComponent, BrandIconComponent } from '../../../../shared/components';
 import { RouterLink, Router } from '@angular/router';
 import { emailValidator } from '../../../../shared/validators/email.validators';
+import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ import { emailValidator } from '../../../../shared/validators/email.validators';
     BrandIconComponent,
     AuthLayout,
     RouterLink,
+    FocusInvalidInputDirective,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',
@@ -61,12 +63,12 @@ export class LoginComponent {
 
       this.toastService.success('Login realizado com sucesso!');
       this.router.navigate(['/dashboard']);
-    } catch (error: any) {
+    } catch (error) {
       // Verifica se é erro de email não confirmado usando o código tipado
       if (error instanceof AuthError && error.code === AuthErrorCode.EmailNotConfirmed) {
         this.toastService.warning('Por favor, confirme seu email antes de entrar.');
         this.router.navigate(['/verificar-email'], {
-          state: { email: email },
+          state: { email },
         });
         return; // Impede que o erro suba para o GlobalHandler
       }
@@ -79,11 +81,10 @@ export class LoginComponent {
   }
 
   async loginWithGoogle() {
+    this.isLoading.set(true);
+    // Deixa o erro explodir para o GlobalErrorHandler se acontecer
     try {
-      this.isLoading.set(true);
       await this.authService.signInWithGoogle();
-    } catch (error: any) {
-      this.toastService.error('Erro ao conectar com Google.');
     } finally {
       this.isLoading.set(false);
     }

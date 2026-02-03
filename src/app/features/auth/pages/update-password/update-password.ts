@@ -1,11 +1,12 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { AuthLayout } from '../../components/auth-layout/auth-layout';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { InputComponent } from '../../../../shared/components/input/input';
 import { LucideAngularModule, Lock, CircleCheck, CircleAlert } from 'lucide-angular';
 import { ButtonComponent } from '../../../../shared/components/button/button';
-import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { AuthService, ToastService } from '../../../../core/services';
+import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 import {
   matchPasswordValidator,
   passwordStrengthValidator,
@@ -20,12 +21,13 @@ import {
     InputComponent,
     ReactiveFormsModule,
     RouterLink,
+    FocusInvalidInputDirective,
   ],
   templateUrl: './update-password.html',
   styleUrl: './update-password.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UpdatePasswordComponent implements OnInit {
+export class UpdatePasswordComponent {
   readonly Lock = Lock;
   readonly CircleCheck = CircleCheck;
   readonly AlertCircle = CircleAlert;
@@ -34,11 +36,9 @@ export class UpdatePasswordComponent implements OnInit {
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
 
   isLoading = signal(false);
   passwordUpdated = signal(false);
-  isTokenValid = signal(true);
 
   form = this.fb.group(
     {
@@ -47,35 +47,6 @@ export class UpdatePasswordComponent implements OnInit {
     },
     { validators: matchPasswordValidator },
   );
-
-  constructor() {
-    effect(() => {
-      // Monitora o estado de autenticação de forma reativa
-      if (!this.authService.isAuthLoading()) {
-        const user = this.authService.currentUser();
-        // Se carregou e não tem usuário, e o token não foi invalidado explicitamente pelo hash
-        if (!user && this.isTokenValid()) {
-          this.isTokenValid.set(false);
-        }
-      }
-    });
-  }
-
-  async ngOnInit() {
-    // 1. Verifica erros na URL (hash fragment)
-    this.route.fragment.subscribe((fragment) => {
-      if (fragment) {
-        const params = new URLSearchParams(fragment);
-        const error = params.get('error');
-        const errorCode = params.get('error_code');
-
-        if (error === 'access_denied' || errorCode === 'otp_expired') {
-          this.isTokenValid.set(false);
-          return;
-        }
-      }
-    });
-  }
 
   async onSubmit() {
     if (this.form.invalid) {
@@ -90,6 +61,11 @@ export class UpdatePasswordComponent implements OnInit {
       await this.authService.updatePassword(password!);
       this.passwordUpdated.set(true);
       this.toastService.success('Senha atualizada com sucesso!');
+
+      // Redireciona para o login após 3 segundos
+      setTimeout(() => {
+        this.router.navigate(['/entrar']);
+      }, 3000);
     } catch (error: any) {
       this.toastService.error(error.message || 'Erro ao atualizar senha');
       this.passwordUpdated.set(false);

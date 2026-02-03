@@ -26,7 +26,7 @@ export class DashboardComponent {
 
   async logout() {
     await this.authService.signOut();
-    this.router.navigate(['/entrar']);
+    // Navegação removida pois o AuthService (ou o efeito global) já deve lidar com o fluxo pós-logout
   }
 
   async refreshData() {

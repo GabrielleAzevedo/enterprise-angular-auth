@@ -56,6 +56,7 @@ describe('DashboardComponent', () => {
     await component.logout();
 
     expect(authServiceMock.signOut).toHaveBeenCalled();
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/entrar']); // Ajustado para rota correta
+    // A navegação agora é responsabilidade do AuthService/App Effect, não do componente explicitamente
+    // expect(routerMock.navigate).toHaveBeenCalledWith(['/entrar']);
   });
 });

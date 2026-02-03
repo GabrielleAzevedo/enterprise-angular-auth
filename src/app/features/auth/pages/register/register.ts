@@ -2,11 +2,7 @@ import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/cor
 import { AuthLayout } from '../../components/auth-layout/auth-layout';
 import { InputComponent, ButtonComponent, BrandIconComponent } from '../../../../shared/components';
 import { LucideAngularModule, Mail, Lock } from 'lucide-angular';
-import {
-  FormBuilder,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService, ToastService } from '../../../../core/services';
 import { RouterLink, Router } from '@angular/router';
 import {
@@ -14,6 +10,8 @@ import {
   passwordStrengthValidator,
 } from '../../../../shared/validators/password.validators';
 import { emailValidator } from '../../../../shared/validators/email.validators';
+import { AuthError, AuthErrorCode } from '../../../../core/models/auth-errors';
+import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 
 @Component({
   selector: 'app-register',
@@ -25,6 +23,7 @@ import { emailValidator } from '../../../../shared/validators/email.validators';
     LucideAngularModule,
     ReactiveFormsModule,
     RouterLink,
+    FocusInvalidInputDirective,
   ],
   templateUrl: './register.html',
   styleUrl: './register.scss',
@@ -72,17 +71,21 @@ export class RegisterComponent {
         state: { email: email },
       });
     } catch (error: any) {
-      if (error.message.includes('already registered')) {
-        this.form.get('email')?.setErrors({ emailTaken: true });
-        this.toastService.warning('Este email já está cadastrado.');
-      } else if (
-        error.message.toLowerCase().includes('valid') ||
-        error.message.toLowerCase().includes('email')
-      ) {
-        this.form.get('email')?.setErrors({ emailInvalidBackend: true });
-        this.toastService.warning('Formato de email inválido.');
+      if (error instanceof AuthError) {
+        if (error.code === AuthErrorCode.UserAlreadyRegistered) {
+          this.form.get('email')?.setErrors({ emailTaken: true });
+          this.toastService.warning(error.toUserFriendlyMessage());
+        } else if (
+          error.code === AuthErrorCode.InvalidCredentials ||
+          error.code === AuthErrorCode.EmailNotConfirmed
+        ) {
+          this.form.get('email')?.setErrors({ emailInvalidBackend: true });
+          this.toastService.warning(error.toUserFriendlyMessage());
+        } else {
+          this.toastService.error(error.toUserFriendlyMessage());
+        }
       } else {
-        this.toastService.error('Erro inesperado: ' + error.message);
+        this.toastService.error('Erro inesperado ao realizar cadastro.');
       }
     } finally {
       this.isLoading.set(false);
